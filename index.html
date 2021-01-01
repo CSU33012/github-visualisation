@@ -32,6 +32,7 @@
                <p id="account-age"><b>Account-Age:</b></p>
                <p id="public-repos"><b>Public Repos:</b></p>
                <p id="private-repos"><b>Private-Repos:</b></p>
+               <p id="languages"><b>Languages:</b></p>
              </div>
  					</div>
           <div id="my_dataviz"></div>
@@ -92,11 +93,13 @@
          var client_id = "25efd33f244c9c0ae0d6";
          var client_secret = "0afe685f276806b646fd1d61f6c930d11e2b95fe";
          console.log("fetching user data");
+
          const userInformation = await request("GET /users/:username", {
            client_id: "25efd33f244c9c0ae0d6",
            client_secret: "0afe685f276806b646fd1d61f6c930d11e2b95fe",
            username: user
          });
+
          setUsername(userInformation.data.login);
          calculateAndSetAccountAge(userInformation.data.created_at);
 
@@ -108,12 +111,12 @@
 
          calculateNumberOfPublicAndPrivateRepos(null, userInformation.data.public_repos);
          generateLanguagesPieChart(repoInformation.data);
+
        }
 
       async function getAdvancedData() {
         var client_id = "25efd33f244c9c0ae0d6";
         window.location.href = "https://github.com/login/oauth/authorize?client_id="+client_id+"&scope=repo"+"&login="+document.getElementById("userinput").value;
-
       }
 
       function getCode() {
@@ -190,10 +193,11 @@
       function generateLanguagesPieChart(repodata) {
 
         d3.select("svg").remove();
-
+        var repocount=0;
         var languages = [];
         var langfrequency = [];
         for(var i=0; i<repodata.length; i++) {
+          repocount++;
           if(languages.indexOf(repodata[i].language) == -1) {
             languages.push(repodata[i].language);
             langfrequency.push(1);
@@ -202,10 +206,75 @@
           }
         }
 
-        var stringdata = '{'
+        var stringdata ="";
         for(var j=0; j<languages.length; j++) {
-          stringdata = stringdata + '"' + languages[j] + '"' + " :" + langfrequency[j] + ",";
+          stringdata = stringdata + languages[j] + "|" + (langfrequency[j]/repocount)*100 + ",";
         }
+
+        stringdata = stringdata.substring(0, stringdata.length-1);
+
+        var splitdata = stringdata.split(',');
+
+        var data = splitdata.map(function(str) {
+          var box = str.split('|');
+          return {Language: box[0], Value: box[1]}
+        });
+        var arr = ["Language","Value"];
+        data.columns = arr;
+        console.log(data);
+
+
+        // set the dimensions and margins of the graph
+var margin = {top: 30, right: 30, bottom: 70, left: 60},
+    width = 460 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+  // sort data
+  data.sort(function(b, a) {
+    return a.Value - b.Value;
+  });
+
+  // X axis
+  var x = d3.scaleBand()
+    .range([ 0, width ])
+    .domain(data.map(function(d) { return d.Language; }))
+    .padding(0.2);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+      .attr("transform", "translate(-10,0)rotate(-45)")
+      .style("text-anchor", "end");
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 100])
+    .range([ height, 0]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // Bars
+  svg.selectAll("mybar")
+    .data(data)
+    .enter()
+    .append("rect")
+      .attr("x", function(d) { return x(d.Language); })
+      .attr("y", function(d) { return y(d.Value); })
+      .attr("width", x.bandwidth())
+      .attr("height", function(d) { return height - y(d.Value); })
+      .attr("fill", "#69b3a2")
+
+        /*
 
         var width = 450;
         var height = 450;
@@ -266,6 +335,8 @@
         .attr("transform", function(d) { return "translate(" + arcGenerator.centroid(d) + ")";  })
         .style("text-anchor", "middle")
         .style("font-size", 17)
+
+        */
         }
 
 

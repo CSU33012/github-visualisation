@@ -1,6 +1,6 @@
 # github-visualisation
 
-To run this project simply donwload the repository, un-zip it, and then double click the index.html file to open it within your browser.
+To run this project simply download the repository, un-zip it, and then double click the index.html file to open it within your browser.
 From there simply enter a valid username and various statistics will be presented to you. The first bar chart represents all the languages
 that your repos use, and the percentage of usage each language sees in total.
 

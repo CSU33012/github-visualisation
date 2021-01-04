@@ -33,9 +33,10 @@
                <p id="public-repos"><b>Public Repos:</b></p>
                <p id="private-repos"><b>Private-Repos:</b></p>
                <p id="languages"><b>Languages:</b></p>
+               <div id="barchart"></div>
+               <p id="languages"><b>Commit Statistics Per Year:</b></p>
              </div>
  					</div>
-          <div id="barchart"></div>
           <select id="selectButton"></select>
           <div id="barchart2"></div>
  			</div>
@@ -78,9 +79,12 @@
 
       window.onload = getCode;
 
+      var username="";
+
       $('#myButton').on('click', function (e) {
           //your awesome code here
           console.log("hello world");
+          username =
           getAdvancedData();
        })
 
@@ -177,13 +181,25 @@
           },
         });
 
+        const repoBasicInformation = await request("GET /users/:username/repos", {
+          headers: {
+            authorization: "Basic MjVlZmQzM2YyNDRjOWMwYWUwZDY6MGFmZTY4NWYyNzY4MDZiNjQ2ZmQxZDYxZjZjOTMwZDExZTJiOTVmZQ==",
+          },
+          username: userInformation.data.login
+        });
+
+        calculateNumberOfPublicAndPrivateRepos(null, userInformation.data.public_repos);
+        showLanguagesUsed(repoInformation.data);
+        showMonthlyCommits(repoInformation.data,"0");
+
         calculateNumberOfPublicAndPrivateRepos(repoInformation.data, userInformation.data.public_repos);
         showLanguagesUsed(repoInformation.data);
-        showMonthlyCommits(repoInformation.data);
+        showMonthlyCommits(repoBasicInformation.data);
       }
 
       function setUsername(username) {
         document.getElementById("username").innerHTML = "<b>Username: </b>" + username;
+        document.getElementById("userinput").value = username;
       }
 
       function calculateAndSetAccountAge(creationDate) {
@@ -295,7 +311,7 @@ var svg = d3.select("#barchart")
 
 
 
-        async function showMonthlyCommits(repos) {
+        async function showMonthlyCommits(repos, token) {
 
           var reponame;
           var username = repos[0].owner.login;
@@ -324,82 +340,85 @@ var svg = d3.select("#barchart")
 
             reponame = repos[i].name;
 
-            const commitdata = await request("GET /repos/:username/:reponame/commits", {
-              headers: {
-                authorization: "Basic MjVlZmQzM2YyNDRjOWMwYWUwZDY6MGFmZTY4NWYyNzY4MDZiNjQ2ZmQxZDYxZjZjOTMwZDExZTJiOTVmZQ==",
-              },
-              username: username,
-              reponame: reponame
-            });
+              const commitdata = await request("GET /repos/:username/:reponame/commits", {
+                headers: {
+                  authorization: "Basic MjVlZmQzM2YyNDRjOWMwYWUwZDY6MGFmZTY4NWYyNzY4MDZiNjQ2ZmQxZDYxZjZjOTMwZDExZTJiOTVmZQ==",
+                },
+                username: username,
+                reponame: reponame
+              });
 
-            commits = commitdata.data;
 
-            for(var j=0; j<commits.length; j++) {
+            if(commitdata.data.length!=null) {
+              commits = commitdata.data;
 
-              totalcommits++;
+              for(var j=0; j<commits.length; j++) {
 
-              var commitdate = commits[j].commit.author.date;
+                totalcommits++;
 
-              var commityear = commitdate.substring(0,4);
+                var commitdate = commits[j].commit.author.date;
 
-              var commitmonth = commitdate.substring(5,7);
+                var commityear = commitdate.substring(0,4);
 
-              switch(commityear) {
-                case "2021":
-                  months2021[Number(commitmonth)-1]++;
-                  break;
+                var commitmonth = commitdate.substring(5,7);
 
-                case "2020":
-                  months2020[Number(commitmonth)-1]++;
-                  break;
+                switch(commityear) {
+                  case "2021":
+                    months2021[Number(commitmonth)-1]++;
+                    break;
 
-                case "2019":
-                  months2019[Number(commitmonth)-1]++;
-                  break;
+                  case "2020":
+                    months2020[Number(commitmonth)-1]++;
+                    break;
 
-                case "2018":
-                  months2018[Number(commitmonth)-1]++;
-                  break;
+                  case "2019":
+                    months2019[Number(commitmonth)-1]++;
+                    break;
 
-                case "2017":
-                  months2017[Number(commitmonth)-1]++;
-                  break;
+                  case "2018":
+                    months2018[Number(commitmonth)-1]++;
+                    break;
 
-                case "2016":
-                  months2016[Number(commitmonth)-1]++;
-                  break;
+                  case "2017":
+                    months2017[Number(commitmonth)-1]++;
+                    break;
 
-                case "2015":
-                  months2015[Number(commitmonth)-1]++;
-                  break;
+                  case "2016":
+                    months2016[Number(commitmonth)-1]++;
+                    break;
 
-                case "2014":
-                  months2014[Number(commitmonth)-1]++;
-                  break;
+                  case "2015":
+                    months2015[Number(commitmonth)-1]++;
+                    break;
 
-                case "2013":
-                  months2013[Number(commitmonth)-1]++;
-                  break;
+                  case "2014":
+                    months2014[Number(commitmonth)-1]++;
+                    break;
 
-                case "2012":
-                  months2013[Number(commitmonth)-1]++;
-                  break;
+                  case "2013":
+                    months2013[Number(commitmonth)-1]++;
+                    break;
 
-                case "2011":
-                  months2011[Number(commitmonth)-1]++;
-                  break;
+                  case "2012":
+                    months2013[Number(commitmonth)-1]++;
+                    break;
 
-                case "2010":
-                  months2010[Number(commitmonth)-1]++;
-                  break;
+                  case "2011":
+                    months2011[Number(commitmonth)-1]++;
+                    break;
 
-                case "2009":
-                  months2009[Number(commitmonth)-1]++;
-                  break;
+                  case "2010":
+                    months2010[Number(commitmonth)-1]++;
+                    break;
 
-                case "2008":
-                  months2008[Number(commitmonth)-1]++;
-                  break;
+                  case "2009":
+                    months2009[Number(commitmonth)-1]++;
+                    break;
+
+                  case "2008":
+                    months2008[Number(commitmonth)-1]++;
+                    break;
+                }
               }
             }
 
